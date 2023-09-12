@@ -34,7 +34,7 @@
               </Pen>
           </views:ModelRenderer.LinePen>
           <views:ModelRenderer.VertexPen>
-              <Pen Thickness="1">
+              <Pen Thickness="4">
                   <Pen.Brush>
                       <SolidColorBrush Color="Yellow" />
                   </Pen.Brush>
