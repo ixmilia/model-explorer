@@ -17,6 +17,7 @@
     <StackPanel Orientation="Horizontal" Grid.Row="0">
       <Button Command="{Binding OpenCommand}">Open</Button>
       <Button Command="{Binding MeasureCommand}">Measure</Button>
+      <Button Command="{Binding ResetViewCommand}">Reset View</Button>
     </StackPanel>
 
       <views:ModelRenderer Name="Renderer"

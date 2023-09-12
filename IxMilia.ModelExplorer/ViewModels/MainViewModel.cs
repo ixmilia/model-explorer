@@ -13,6 +13,7 @@ public class MainViewModel : ViewModelBase
 {
     public ReactiveCommand<Unit, Unit> OpenCommand { get; }
     public ReactiveCommand<Unit, Unit> MeasureCommand { get; }
+    public ReactiveCommand<Unit, Unit> ResetViewCommand { get; }
 
     private static FilePickerFileType StlFilePickerType;
 
@@ -35,6 +36,7 @@ public class MainViewModel : ViewModelBase
         ModelRendererViewModel = new ModelRendererViewModel();
         OpenCommand = ReactiveCommand.CreateFromTask(Open);
         MeasureCommand = ReactiveCommand.CreateFromTask(Measure);
+        ResetViewCommand = ReactiveCommand.Create(ResetView);
     }
 
     public async Task Open()
@@ -70,5 +72,10 @@ public class MainViewModel : ViewModelBase
         var delta = secondPoint - firstPoint;
         var distance = delta.Length();
         ModelRendererViewModel.Status = $"dx: {Math.Abs(delta.X)}, dy: {Math.Abs(delta.Y)}, dz: {Math.Abs(delta.Z)}, dist: {distance}";
+    }
+
+    public void ResetView()
+    {
+        ModelRendererViewModel.ResetViewTransform();
     }
 }

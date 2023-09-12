@@ -13,8 +13,8 @@ namespace IxMilia.ModelExplorer.ViewModels
     {
         private Model? _model;
         private float _viewScaleFactor = 1.0f;
-        private Vector3 _cameraLocation = new Vector3(1.0f, -1.0f, 1.0f);
-        private Vector3 _cameraTarget = Vector3.Zero;
+        private Vector3 _cameraLocation;
+        private Vector3 _cameraTarget;
         private Matrix4x4 _viewTransform;
         private string _status = string.Empty;
 
@@ -57,6 +57,14 @@ namespace IxMilia.ModelExplorer.ViewModels
 
         public ModelRendererViewModel()
         {
+            ResetViewTransform();
+        }
+
+        public void ResetViewTransform()
+        {
+            _cameraTarget = Vector3.Zero;
+            _cameraLocation = new Vector3(1.0f, -1.0f, 1.0f);
+            _viewScaleFactor = 10.0f;
             RecalculateViewTransform();
         }
 
