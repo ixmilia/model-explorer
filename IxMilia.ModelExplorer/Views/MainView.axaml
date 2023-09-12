@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:IxMilia.ModelExplorer.ViewModels"
+             xmlns:views="clr-namespace:IxMilia.ModelExplorer.Views"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="IxMilia.ModelExplorer.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+      <RowDefinition Height="Auto" />
+    </Grid.RowDefinitions>
+
+    <StackPanel Orientation="Horizontal" Grid.Row="0">
+      <Button Command="{Binding OpenCommand}">Open</Button>
+      <Button Command="{Binding MeasureCommand}">Measure</Button>
+    </StackPanel>
+
+      <views:ModelRenderer Name="Renderer"
+                           Grid.Row="1"
+                           HorizontalAlignment="Stretch"
+                           VerticalAlignment="Stretch"
+                           BackgroundColor="CornflowerBlue"
+                           DataContext="{Binding ModelRendererViewModel}">
+          <views:ModelRenderer.LinePen>
+              <Pen Thickness="1">
+                  <Pen.Brush>
+                      <SolidColorBrush Color="White" />
+                  </Pen.Brush>
+              </Pen>
+          </views:ModelRenderer.LinePen>
+          <views:ModelRenderer.VertexPen>
+              <Pen Thickness="1">
+                  <Pen.Brush>
+                      <SolidColorBrush Color="Yellow" />
+                  </Pen.Brush>
+              </Pen>
+          </views:ModelRenderer.VertexPen>
+      </views:ModelRenderer>
+    <StackPanel Orientation="Horizontal" Grid.Row="2">
+      <TextBlock Margin="4"
+                 Text="FPS:"/>
+      <TextBlock HorizontalAlignment="Left"
+                 VerticalAlignment="Bottom"
+                 Margin="4"
+                 Text="{Binding #Renderer.Fps}" />
+      <TextBlock HorizontalAlignment="Left"
+                 VerticalAlignment="Bottom"
+                 Margin="4"
+                 Text="{Binding ModelRendererViewModel.Status}"/>
+    </StackPanel>
+
+  </Grid>
+</UserControl>
