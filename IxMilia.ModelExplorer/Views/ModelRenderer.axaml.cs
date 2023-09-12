@@ -28,6 +28,7 @@ namespace IxMilia.ModelExplorer.Views
         private Point[] _transformedVertices = Array.Empty<Point>();
         private Point[] _swapTransformedVertices = Array.Empty<Point>();
         private Vector3? _highlightVertex;
+        private bool _isPanning;
         private bool _isRotating;
         private Point _lastCursorPosition;
 
@@ -142,10 +143,16 @@ namespace IxMilia.ModelExplorer.Views
         {
             base.OnPointerMoved(e);
             var point = e.GetCurrentPoint(this);
+            var delta = point.Position - _lastCursorPosition;
+            _lastCursorPosition = point.Position;
+
+            if (_isPanning)
+            {
+                _viewModel?.Pan(delta.X, delta.Y);
+            }
+
             if (_isRotating)
             {
-                var delta = point.Position - _lastCursorPosition;
-                _lastCursorPosition = point.Position;
                 _viewModel?.Rotate(-delta.X, delta.Y);
             }
 
@@ -167,6 +174,12 @@ namespace IxMilia.ModelExplorer.Views
         {
             base.OnPointerPressed(e);
             var point = e.GetCurrentPoint(this);
+            if (point.Properties.IsMiddleButtonPressed)
+            {
+                _isPanning = true;
+                _lastCursorPosition = point.Position;
+            }
+
             if (point.Properties.IsRightButtonPressed)
             {
                 _isRotating = true;
@@ -189,6 +202,11 @@ namespace IxMilia.ModelExplorer.Views
         {
             base.OnPointerReleased(e);
             var point = e.GetCurrentPoint(this);
+            if (!point.Properties.IsMiddleButtonPressed)
+            {
+                _isPanning = false;
+            }
+
             if (!point.Properties.IsRightButtonPressed)
             {
                 _isRotating = false;

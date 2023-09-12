@@ -51,6 +51,10 @@ namespace IxMilia.ModelExplorer.ViewModels
             }
         }
 
+        internal Vector3 ViewportXAxis => Vector3.Cross(Vector3.UnitZ, _cameraLocation - _cameraTarget);
+
+        internal Vector3 ViewportYAxis => Vector3.Cross(_cameraLocation - _cameraTarget, ViewportXAxis);
+
         public ModelRendererViewModel()
         {
             RecalculateViewTransform();
@@ -59,6 +63,16 @@ namespace IxMilia.ModelExplorer.ViewModels
         public void Zoom(float scale)
         {
             _viewScaleFactor *= scale;
+            RecalculateViewTransform();
+        }
+
+        public void Pan(double cursorDx, double cursorDy)
+        {
+            var deltaX = ViewportXAxis * (float)(-cursorDx / _viewScaleFactor);
+            var deltaY = ViewportYAxis * (float)(cursorDy / _viewScaleFactor);
+            var delta = deltaX + deltaY;
+            _cameraLocation += delta;
+            _cameraTarget += delta;
             RecalculateViewTransform();
         }
 
@@ -76,11 +90,10 @@ namespace IxMilia.ModelExplorer.ViewModels
             _cameraLocation = newCameraLocation;
 
             // up/down will rotate around the current view's x axis
-            var viewportXaxis = Vector3.Cross(Vector3.UnitZ, _cameraLocation - _cameraTarget);
             var angle2 = -cursorDy * rotationSpeed;
             var rotationMatrix2 =
                 Matrix4x4.CreateTranslation(-_cameraTarget)
-                * Matrix4x4.CreateFromAxisAngle(viewportXaxis, (float)angle2)
+                * Matrix4x4.CreateFromAxisAngle(ViewportXAxis, (float)angle2)
                 * Matrix4x4.CreateTranslation(_cameraTarget);
             var newCameraLocation2 = Vector3.Transform(_cameraLocation, rotationMatrix2);
             _cameraLocation = newCameraLocation2;
