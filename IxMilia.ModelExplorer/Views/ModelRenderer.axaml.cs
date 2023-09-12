@@ -25,6 +25,9 @@ namespace IxMilia.ModelExplorer.Views
 
         private ModelRendererViewModel? _viewModel;
         private Brush? _backgroundBrush;
+        private Pen _xAxisPen;
+        private Pen _yAxisPen;
+        private Pen _zAxisPen;
         private Point[] _transformedVertices = Array.Empty<Point>();
         private Point[] _swapTransformedVertices = Array.Empty<Point>();
         private Vector3? _highlightVertex;
@@ -64,6 +67,9 @@ namespace IxMilia.ModelExplorer.Views
 
         public ModelRenderer()
         {
+            _xAxisPen = new Pen(Colors.Red.ToUInt32(), thickness: 1.0);
+            _yAxisPen = new Pen(Colors.Green.ToUInt32(), thickness: 1.0);
+            _zAxisPen = new Pen(Colors.Blue.ToUInt32(), thickness: 1.0);
             DataContextChanged += (_sender, _e) => Bind();
             Bind();
             InitializeComponent();
@@ -92,7 +98,9 @@ namespace IxMilia.ModelExplorer.Views
             sw.Start();
 
             context.FillRectangle(_backgroundBrush, new Rect(0, 0, Bounds.Width, Bounds.Height));
+            var transform = GetCorrectedTransform();
 
+            // model
             var localTransformedVertices = _transformedVertices;
             for (int i = 0; i < localTransformedVertices.Length; i += 3)
             {
@@ -105,11 +113,12 @@ namespace IxMilia.ModelExplorer.Views
                 context.DrawLine(LinePen, v3, v1);
             }
 
+            // highlighted vertex
             var localHighlightVertex = _highlightVertex;
             if (localHighlightVertex.HasValue)
             {
                 var vertexSize = 5.0;
-                var localHighlightVertexValue = localHighlightVertex.GetValueOrDefault().Transform(GetCorrectedTransform());
+                var localHighlightVertexValue = localHighlightVertex.GetValueOrDefault().Transform(transform);
                 context.DrawLine(
                     VertexPen,
                     new Point(localHighlightVertexValue.X - vertexSize, localHighlightVertexValue.Y - vertexSize),
@@ -119,6 +128,17 @@ namespace IxMilia.ModelExplorer.Views
                     new Point(localHighlightVertexValue.X - vertexSize, localHighlightVertexValue.Y + vertexSize),
                     new Point(localHighlightVertexValue.X + vertexSize, localHighlightVertexValue.Y - vertexSize));
             }
+
+            // axes
+            var origin = Vector3.Transform(Vector3.Zero, transform);
+            var xaxisDirection = Vector3.Normalize(Vector3.Transform(Vector3.UnitX, transform) - origin);
+            var yaxisDirection = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, transform) - origin);
+            var zaxisDirection = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, transform) - origin);
+            var axisSize = 50.0f;
+            var axisCenter = new Vector3(axisSize, (float)Bounds.Height - axisSize, 0.0f);
+            context.DrawLine(_xAxisPen, axisCenter.ToPoint(), (xaxisDirection * axisSize + axisCenter).ToPoint());
+            context.DrawLine(_yAxisPen, axisCenter.ToPoint(), (yaxisDirection * axisSize + axisCenter).ToPoint());
+            context.DrawLine(_zAxisPen, axisCenter.ToPoint(), (zaxisDirection * axisSize + axisCenter).ToPoint());
 
             sw.Stop();
             var elapsed = sw.ElapsedMilliseconds;
