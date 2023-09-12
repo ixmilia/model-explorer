@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.ModelExplorer", "Ix
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.ModelExplorer.Desktop", "IxMilia.ModelExplorer.Desktop\IxMilia.ModelExplorer.Desktop.csproj", "{9E984414-0932-4B52-B600-92431655EB5C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.Stl", "stl\src\IxMilia.Stl\IxMilia.Stl.csproj", "{68084CA7-EA08-4772-B368-CA44E675AB39}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{9E984414-0932-4B52-B600-92431655EB5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E984414-0932-4B52-B600-92431655EB5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E984414-0932-4B52-B600-92431655EB5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68084CA7-EA08-4772-B368-CA44E675AB39}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68084CA7-EA08-4772-B368-CA44E675AB39}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68084CA7-EA08-4772-B368-CA44E675AB39}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68084CA7-EA08-4772-B368-CA44E675AB39}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

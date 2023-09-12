@@ -121,7 +121,14 @@ namespace IxMilia.ModelExplorer.Views
 
             sw.Stop();
             var elapsed = sw.ElapsedMilliseconds;
-            Fps = elapsed == 0.0 ? double.PositiveInfinity : 1.0 / elapsed;
+            if (elapsed == 0.0)
+            {
+                Fps = double.PositiveInfinity;
+            }
+            else
+            {
+                Fps = 1.0 / elapsed;
+            }
         }
 
         protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
@@ -141,18 +148,16 @@ namespace IxMilia.ModelExplorer.Views
                 _lastCursorPosition = point.Position;
                 _viewModel?.Rotate(-delta.X, delta.Y);
             }
+
+            var closest = GetClosestVertexInRange(point.Position);
+            if (closest.HasValue)
+            {
+                var (closestVertex, _closestPoint, _distance) = closest.GetValueOrDefault();
+                _highlightVertex = closestVertex;
+            }
             else
             {
-                var closest = GetClosestVertexInRange(point.Position);
-                if (closest.HasValue)
-                {
-                    var (closestVertex, _closestPoint, _distance) = closest.GetValueOrDefault();
-                    _highlightVertex = closestVertex;
-                }
-                else
-                {
-                    _highlightVertex = null;
-                }
+                _highlightVertex = null;
             }
 
             InvalidateVisual();
