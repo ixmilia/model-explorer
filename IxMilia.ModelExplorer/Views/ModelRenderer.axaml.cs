@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Threading;
 using IxMilia.ModelExplorer.ViewModels;
 
 namespace IxMilia.ModelExplorer.Views
@@ -13,7 +14,6 @@ namespace IxMilia.ModelExplorer.Views
     public partial class ModelRenderer : Control
     {
         public static readonly StyledProperty<Color> BackgroundColorProperty = AvaloniaProperty.Register<ModelRenderer, Color>(nameof(Color));
-        public static readonly StyledProperty<double> FpsProperty = AvaloniaProperty.Register<ModelRenderer, double>(nameof(Fps));
         public static readonly StyledProperty<Pen> LinePenProperty = AvaloniaProperty.Register<ModelRenderer, Pen>(nameof(LinePen));
         public static readonly StyledProperty<Pen> VertexPenProperty = AvaloniaProperty.Register<ModelRenderer, Pen>(nameof(VertexPen));
 
@@ -45,12 +45,6 @@ namespace IxMilia.ModelExplorer.Views
                 _backgroundBrush = new SolidColorBrush(value);
                 SetValue(BackgroundColorProperty, value);
             }
-        }
-
-        public double Fps
-        {
-            get => GetValue(FpsProperty);
-            set => SetValue(FpsProperty, value);
         }
 
         public Pen LinePen
@@ -146,13 +140,10 @@ namespace IxMilia.ModelExplorer.Views
 
             sw.Stop();
             var elapsed = sw.ElapsedMilliseconds;
-            if (elapsed == 0.0)
+            var fps = elapsed == 0.0 ? double.PositiveInfinity : 1000.0 / elapsed;
+            if (_viewModel is not null)
             {
-                Fps = double.PositiveInfinity;
-            }
-            else
-            {
-                Fps = 1.0 / elapsed;
+                Dispatcher.UIThread.Post(() => _viewModel.Fps = fps);
             }
         }
 

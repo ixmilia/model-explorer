@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Numerics;
 using ReactiveUI;
 
 namespace IxMilia.ModelExplorer.ViewModels
@@ -16,39 +10,31 @@ namespace IxMilia.ModelExplorer.ViewModels
         private Vector3 _cameraLocation;
         private Vector3 _cameraTarget;
         private Matrix4x4 _viewTransform;
+        private double _fps;
         private string _status = string.Empty;
 
         public Model? Model
         {
             get => _model;
-            set
-            {
-                ((IReactiveObject)this).RaisePropertyChanging(new PropertyChangingEventArgs(nameof(Model)));
-                _model = value;
-                ((IReactiveObject)this).RaisePropertyChanged(new PropertyChangedEventArgs(nameof(Model)));
-            }
+            set => this.RaiseAndSetIfChanged(ref _model, value, nameof(Model));
         }
 
         public Matrix4x4 ViewTransform
         {
             get => _viewTransform;
-            private set
-            {
-                ((IReactiveObject)this).RaisePropertyChanging(new PropertyChangingEventArgs(nameof(ViewTransform)));
-                _viewTransform = value;
-                ((IReactiveObject)this).RaisePropertyChanged(new PropertyChangedEventArgs(nameof(ViewTransform)));
-            }
+            private set => this.RaiseAndSetIfChanged(ref _viewTransform, value, nameof(ViewTransform));
+        }
+
+        public double Fps
+        {
+            get => _fps;
+            set => this.RaiseAndSetIfChanged(ref _fps, value, nameof(Fps));
         }
 
         public string Status
         {
             get => _status;
-            set
-            {
-                ((IReactiveObject)this).RaisePropertyChanging(new PropertyChangingEventArgs(nameof(Status)));
-                _status = value;
-                ((IReactiveObject)this).RaisePropertyChanged(new PropertyChangedEventArgs(nameof(Status)));
-            }
+            set => this.RaiseAndSetIfChanged(ref _status, value, nameof(Status));
         }
 
         internal Vector3 ViewportXAxis => Vector3.Cross(Vector3.UnitZ, _cameraLocation - _cameraTarget);

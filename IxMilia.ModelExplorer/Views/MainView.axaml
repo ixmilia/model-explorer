@@ -48,7 +48,8 @@
       <TextBlock HorizontalAlignment="Left"
                  VerticalAlignment="Bottom"
                  Margin="4"
-                 Text="{Binding #Renderer.Fps}" />
+                 Width="100"
+                 Text="{Binding ModelRendererViewModel.Fps}" />
       <TextBlock HorizontalAlignment="Left"
                  VerticalAlignment="Bottom"
                  Margin="4"

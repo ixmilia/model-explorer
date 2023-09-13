@@ -22,7 +22,7 @@ public partial class App : Application
             var mainWindow = new MainWindow();
             mainWindow.MainView.Renderer.InteractionManager = interactionManager;
             var mainViewModel = new MainViewModel(mainWindow, interactionManager);
-            mainWindow.DataContext = mainViewModel;
+            mainWindow.MainView.DataContext = mainViewModel;
             desktop.MainWindow = mainWindow;
         }
         else if (ApplicationLifetime is ISingleViewApplicationLifetime singleViewPlatform)
