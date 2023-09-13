@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using IxMilia.Stl;
@@ -23,29 +24,36 @@ namespace IxMilia.ModelExplorer
             {
                 case ".stl":
                     {
-                        // TODO: cache/reuse vertices
+                        // cache/reuse vertices
                         var stl = StlFile.Load(stream);
-                        var vertices = new Vector3[stl.Triangles.Count * 3];
-                        var triangles = new Triangle[stl.Triangles.Count];
-                        var vertexIndex = 0;
-                        var triangleIndex = 0;
+                        var vertices = new List<Vector3>();
+                        var vertexToIndex = new Dictionary<Vector3, int>();
+                        var triangles = new List<Triangle>();
                         foreach (var triangle in stl.Triangles)
                         {
-                            var vertexStart = vertexIndex;
-                            vertices[vertexIndex++] = ToVector(triangle.Vertex1);
-                            vertices[vertexIndex++] = ToVector(triangle.Vertex2);
-                            vertices[vertexIndex++] = ToVector(triangle.Vertex3);
-                            triangles[triangleIndex++] = new Triangle(vertexStart, vertexStart + 1, vertexStart + 2);
+                            foreach (var stlVertex in new[] { triangle.Vertex1, triangle.Vertex2, triangle.Vertex3 })
+                            {
+                                var vertex = stlVertex.ToVector3();
+                                if (!vertexToIndex.ContainsKey(vertex))
+                                {
+                                    vertexToIndex.Add(vertex, vertices.Count);
+                                    vertices.Add(vertex);
+                                }
+                            }
+
+                            var createdTriangle = new Triangle(
+                                vertexToIndex[triangle.Vertex1.ToVector3()],
+                                vertexToIndex[triangle.Vertex2.ToVector3()],
+                                vertexToIndex[triangle.Vertex3.ToVector3()]);
+                            triangles.Add(createdTriangle);
                         }
 
-                        var model = new Model(vertices, triangles);
+                        var model = new Model(vertices.ToArray(), triangles.ToArray());
                         return model;
                     }
                 default:
                     throw new NotImplementedException();
             }
         }
-
-        private static Vector3 ToVector(StlVertex v) => new Vector3(v.X, v.Y, v.Z);
     }
 }

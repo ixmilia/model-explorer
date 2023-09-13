@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Numerics;
+using System.Xml.Schema;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -28,8 +29,7 @@ namespace IxMilia.ModelExplorer.Views
         private Pen _xAxisPen;
         private Pen _yAxisPen;
         private Pen _zAxisPen;
-        private Point[] _transformedVertices = Array.Empty<Point>();
-        private Point[] _swapTransformedVertices = Array.Empty<Point>();
+        private Model? _transformedModel;
         private Vector3? _highlightVertex;
         private bool _isPanning;
         private bool _isRotating;
@@ -101,16 +101,20 @@ namespace IxMilia.ModelExplorer.Views
             var transform = GetCorrectedTransform();
 
             // model
-            var localTransformedVertices = _transformedVertices;
-            for (int i = 0; i < localTransformedVertices.Length; i += 3)
+            var transformedModel = _transformedModel;
+            if (transformedModel != null)
             {
-                var v1 = localTransformedVertices[i];
-                var v2 = localTransformedVertices[i + 1];
-                var v3 = localTransformedVertices[i + 2];
+                for (int i = 0; i < transformedModel.Triangles.Length; i++)
+                {
+                    var triangle = transformedModel.Triangles[i];
+                    var v1 = transformedModel.Vertices[triangle.V1].ToPoint();
+                    var v2 = transformedModel.Vertices[triangle.V2].ToPoint();
+                    var v3 = transformedModel.Vertices[triangle.V3].ToPoint();
 
-                context.DrawLine(LinePen, v1, v2);
-                context.DrawLine(LinePen, v2, v3);
-                context.DrawLine(LinePen, v3, v1);
+                    context.DrawLine(LinePen, v1, v2);
+                    context.DrawLine(LinePen, v2, v3);
+                    context.DrawLine(LinePen, v3, v1);
+                }
             }
 
             // highlighted vertex
@@ -254,35 +258,17 @@ namespace IxMilia.ModelExplorer.Views
                 return;
             }
 
-            var viewTransform = _viewModel.ViewTransform;
-            var _localTransformedVertices = _transformedVertices;
-            var _localSwapTransformedVertices = _swapTransformedVertices;
-            if (_transformedVertices.Length != model.Vertices.Length)
-            {
-                // resize
-                _localTransformedVertices = new Point[model.Vertices.Length];
-                _localSwapTransformedVertices = new Point[model.Vertices.Length];
-            }
-
-            var transformedVertexIndex = 0;
             var transform = GetCorrectedTransform();
-            for (int i = 0; i < model.Triangles.Length; i++)
+            var swapTransformedModel = new Model((Vector3[])model.Vertices.Clone(), model.Triangles);
+            for (int i = 0; i < swapTransformedModel.Vertices.Length; i++)
             {
-                var triangle = model.Triangles[i];
-                var v1 = model.Vertices[triangle.V1];
-                var v2 = model.Vertices[triangle.V2];
-                var v3 = model.Vertices[triangle.V3];
-                var v1Transformed = v1.Transform(transform);
-                var v2Transformed = v2.Transform(transform);
-                var v3Transformed = v3.Transform(transform);
-                _localSwapTransformedVertices[transformedVertexIndex++] = v1Transformed;
-                _localSwapTransformedVertices[transformedVertexIndex++] = v2Transformed;
-                _localSwapTransformedVertices[transformedVertexIndex++] = v3Transformed;
+                var v = swapTransformedModel.Vertices[i];
+                var vTransformed = Vector3.Transform(v, transform);
+                swapTransformedModel.Vertices[i] = vTransformed;
             }
 
             // do the swap
-            _transformedVertices = _localSwapTransformedVertices;
-            _swapTransformedVertices = _localTransformedVertices;
+            _transformedModel = swapTransformedModel;
         }
 
         private (Vector3, Point, double)? GetClosestVertexInRange(Point cursorLocation)
@@ -292,30 +278,31 @@ namespace IxMilia.ModelExplorer.Views
                 return null;
             }
 
-            var vertices = _viewModel.Model.Vertices;
-            var minimumDistance = 5.0;
-            var transformedVertices = _transformedVertices;
-            if (transformedVertices.Length > 0)
-            {
-                var closestVertex = vertices[0];
-                var closestScreenPoint = _transformedVertices[0];
-                var lastDistance = double.MaxValue;
-                for (int i = 0; i < transformedVertices.Length; i++)
-                {
-                    var vertex = transformedVertices[i];
-                    var distanceSquared = DistanceSquared(cursorLocation, vertex);
-                    if (distanceSquared < lastDistance)
-                    {
-                        lastDistance = distanceSquared;
-                        closestVertex = vertices[i];
-                        closestScreenPoint = transformedVertices[i];
-                    }
-                }
+            var model = _viewModel.Model;
+            var transformedModel = _transformedModel;
 
-                if (lastDistance < minimumDistance * minimumDistance)
+            if (model is null || transformedModel is null)
+            {
+                return null;
+            }
+
+            var closestVertexIndex = 0;
+            var closestDistance = double.MaxValue;
+            for (int i = 0; i < transformedModel.Vertices.Length; i++)
+            {
+                var candidateVertex = transformedModel.Vertices[i].ToPoint();
+                var candidateDistance = DistanceSquared(cursorLocation, candidateVertex);
+                if (candidateDistance < closestDistance)
                 {
-                    return (closestVertex, closestScreenPoint, lastDistance);
+                    closestDistance = candidateDistance;
+                    closestVertexIndex = i;
                 }
+            }
+
+            var minimumDistance = 5.0;
+            if (closestDistance < minimumDistance * minimumDistance)
+            {
+                return (model.Vertices[closestVertexIndex], transformedModel.Vertices[closestVertexIndex].ToPoint(), closestDistance);
             }
 
             return null;
