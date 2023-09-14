@@ -59,7 +59,7 @@ public class MainViewModel : ViewModelBase
             if (files?.Count > 0)
             {
                 var file = files.First();
-                var fileStream = await file.OpenReadAsync();
+                using var fileStream = await file.OpenReadAsync();
                 var model = Model.FromNameAndStream(file.Name, fileStream);
                 ModelRendererViewModel.Model = model;
             }
