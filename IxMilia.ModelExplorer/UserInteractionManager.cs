@@ -11,7 +11,7 @@ namespace IxMilia.ModelExplorer
 
         public void PushVector3(Vector3 v)
         {
-            _pointTaskCompletionSource?.SetResult(v);
+            _pointTaskCompletionSource?.TrySetResult(v);
         }
 
         public Task<Vector3> GetVector3Async()
