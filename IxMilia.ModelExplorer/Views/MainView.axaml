@@ -49,7 +49,7 @@
                  VerticalAlignment="Bottom"
                  Margin="4"
                  Width="100"
-                 Text="{Binding ModelRendererViewModel.Fps}" />
+                 Text="{Binding ModelRendererViewModel.FpsRolling}" />
       <TextBlock HorizontalAlignment="Left"
                  VerticalAlignment="Bottom"
                  Margin="4"

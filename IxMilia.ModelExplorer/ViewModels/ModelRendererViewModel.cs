@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 using ReactiveUI;
 
 namespace IxMilia.ModelExplorer.ViewModels
@@ -12,6 +13,10 @@ namespace IxMilia.ModelExplorer.ViewModels
         private Matrix4x4 _viewTransform;
         private double _fps;
         private string _status = string.Empty;
+
+        private const int RollingWindow = 10;
+        private double[] _fpsRolling = new double[RollingWindow];
+        private int _fpsRollingIndex = 0;
 
         public Model? Model
         {
@@ -28,8 +33,16 @@ namespace IxMilia.ModelExplorer.ViewModels
         public double Fps
         {
             get => _fps;
-            set => this.RaiseAndSetIfChanged(ref _fps, value, nameof(Fps));
+            set
+            {
+                _fpsRolling[_fpsRollingIndex++] = value;
+                _fpsRollingIndex %= _fpsRolling.Length;
+                this.RaiseAndSetIfChanged(ref _fps, value, nameof(Fps));
+                this.RaisePropertyChanged(nameof(FpsRolling));
+            }
         }
+
+        public double FpsRolling => _fpsRolling.Sum() / _fpsRolling.Length;
 
         public string Status
         {
