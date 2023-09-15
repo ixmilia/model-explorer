@@ -23,6 +23,7 @@
 
       <views:ModelRenderer Name="Renderer"
                            Grid.Row="1"
+                           ClipToBounds="true"
                            HorizontalAlignment="Stretch"
                            VerticalAlignment="Stretch"
                            BackgroundColor="CornflowerBlue"
