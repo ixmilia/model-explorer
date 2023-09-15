@@ -1,3 +1,6 @@
 [submodule "stl"]
 	path = stl
 	url = https://github.com/ixmilia/stl
+[submodule "threemf"]
+	path = threemf
+	url = https://github.com/ixmilia/threemf

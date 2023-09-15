@@ -18,6 +18,7 @@ public class MainViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ResetViewCommand { get; }
 
     private static FilePickerFileType StlFilePickerType;
+    private static FilePickerFileType ThreeMfFilePickerType;
 
     private Control _control;
     public ModelRendererViewModel ModelRendererViewModel { get; }
@@ -28,6 +29,10 @@ public class MainViewModel : ViewModelBase
         StlFilePickerType = new FilePickerFileType("STL models")
         {
             Patterns = new[] { "*.stl" },
+        };
+        ThreeMfFilePickerType = new FilePickerFileType("3MF models")
+        {
+            Patterns = new[] { "*.3mf" },
         };
     }
 
@@ -54,6 +59,7 @@ public class MainViewModel : ViewModelBase
                 FileTypeFilter = new FilePickerFileType[]
                 {
                     StlFilePickerType,
+                    ThreeMfFilePickerType,
                 },
             });
             if (files?.Count > 0)

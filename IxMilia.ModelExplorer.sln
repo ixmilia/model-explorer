@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.ModelExplorer.Deskt
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.Stl", "stl\src\IxMilia.Stl\IxMilia.Stl.csproj", "{68084CA7-EA08-4772-B368-CA44E675AB39}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IxMilia.ThreeMf", "threemf\src\IxMilia.ThreeMf\IxMilia.ThreeMf.csproj", "{F4FCEE2E-527D-47F7-983B-0F51E8D9B6B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{68084CA7-EA08-4772-B368-CA44E675AB39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68084CA7-EA08-4772-B368-CA44E675AB39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68084CA7-EA08-4772-B368-CA44E675AB39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F4FCEE2E-527D-47F7-983B-0F51E8D9B6B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F4FCEE2E-527D-47F7-983B-0F51E8D9B6B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F4FCEE2E-527D-47F7-983B-0F51E8D9B6B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F4FCEE2E-527D-47F7-983B-0F51E8D9B6B0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,7 @@
 ﻿using System.Numerics;
 using Avalonia;
 using IxMilia.Stl;
+using IxMilia.ThreeMf;
 
 namespace IxMilia.ModelExplorer
 {
@@ -17,5 +18,7 @@ namespace IxMilia.ModelExplorer
         public static Vector3 ToVector3(this Point point) => new Vector3((float)point.X, (float)point.Y, 0.0f);
 
         public static Vector3 ToVector3(this StlVertex vertex) => new Vector3(vertex.X, vertex.Y, vertex.Z);
+
+        public static Vector3 ToVector3(this ThreeMfVertex vertex) => new Vector3((float)vertex.X, (float)vertex.Y, (float)vertex.Z);
     }
 }

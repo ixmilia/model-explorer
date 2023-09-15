@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\stl\src\IxMilia.Stl\IxMilia.Stl.csproj" />
+    <ProjectReference Include="..\threemf\src\IxMilia.ThreeMf\IxMilia.ThreeMf.csproj" />
   </ItemGroup>
 
   <ItemGroup>
