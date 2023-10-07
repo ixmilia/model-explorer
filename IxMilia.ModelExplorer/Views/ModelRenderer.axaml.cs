@@ -1,6 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
 using System.Numerics;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml.Schema;
 using Avalonia;
 using Avalonia.Controls;
@@ -8,6 +12,7 @@ using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Threading;
 using IxMilia.ModelExplorer.ViewModels;
+using ReactiveUI;
 
 namespace IxMilia.ModelExplorer.Views
 {
@@ -26,6 +31,9 @@ namespace IxMilia.ModelExplorer.Views
 
         private ModelRendererViewModel? _viewModel;
         private Brush? _backgroundBrush;
+        private FormattedText _xAxisLabel;
+        private FormattedText _yAxisLabel;
+        private FormattedText _zAxisLabel;
         private Pen _xAxisPen;
         private Pen _yAxisPen;
         private Pen _zAxisPen;
@@ -61,6 +69,10 @@ namespace IxMilia.ModelExplorer.Views
 
         public ModelRenderer()
         {
+            var textBrush = new SolidColorBrush(Colors.White);
+            _xAxisLabel = new FormattedText("X", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10.0, textBrush);
+            _yAxisLabel = new FormattedText("Y", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10.0, textBrush);
+            _zAxisLabel = new FormattedText("Z", CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Typeface.Default, 10.0, textBrush);
             _xAxisPen = new Pen(Colors.Red.ToUInt32(), thickness: 1.0);
             _yAxisPen = new Pen(Colors.Green.ToUInt32(), thickness: 1.0);
             _zAxisPen = new Pen(Colors.Blue.ToUInt32(), thickness: 1.0);
@@ -79,8 +91,17 @@ namespace IxMilia.ModelExplorer.Views
                     if (e.PropertyName == nameof(ModelRendererViewModel.Model) ||
                         e.PropertyName == nameof(ModelRendererViewModel.ViewTransform))
                     {
-                        RecalculateVertices();
-                        InvalidateVisual();
+                        Task.Factory.StartNew(() =>
+                        {
+                            try
+                            {
+                                RecalculateVertices();
+                                Dispatcher.UIThread.Post(() => InvalidateVisual());
+                            }
+                            catch (OperationCanceledException)
+                            {
+                            }
+                        });
                     }
                 };
             }
@@ -88,6 +109,8 @@ namespace IxMilia.ModelExplorer.Views
 
         public override void Render(DrawingContext context)
         {
+            var token = GetNewToken();
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -100,6 +123,11 @@ namespace IxMilia.ModelExplorer.Views
             {
                 for (int i = 0; i < transformedModel.Triangles.Length; i++)
                 {
+                    if (token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
                     var triangle = transformedModel.Triangles[i];
                     var v1 = transformedModel.Vertices[triangle.V1].ToPoint();
                     var v2 = transformedModel.Vertices[triangle.V2].ToPoint();
@@ -134,9 +162,15 @@ namespace IxMilia.ModelExplorer.Views
             var zaxisDirection = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, transform) - origin);
             var axisSize = 50.0f;
             var axisCenter = new Vector3(axisSize, (float)Bounds.Height - axisSize, 0.0f);
-            context.DrawLine(_xAxisPen, axisCenter.ToPoint(), (xaxisDirection * axisSize + axisCenter).ToPoint());
-            context.DrawLine(_yAxisPen, axisCenter.ToPoint(), (yaxisDirection * axisSize + axisCenter).ToPoint());
-            context.DrawLine(_zAxisPen, axisCenter.ToPoint(), (zaxisDirection * axisSize + axisCenter).ToPoint());
+            var xAxisEndPoint = (xaxisDirection * axisSize + axisCenter).ToPoint();
+            var yAxisEndPoint = (yaxisDirection * axisSize + axisCenter).ToPoint();
+            var zAxisEndPoint = (zaxisDirection * axisSize + axisCenter).ToPoint();
+            context.DrawText(_xAxisLabel, xAxisEndPoint);
+            context.DrawText(_yAxisLabel, yAxisEndPoint);
+            context.DrawText(_zAxisLabel, zAxisEndPoint);
+            context.DrawLine(_xAxisPen, axisCenter.ToPoint(), xAxisEndPoint);
+            context.DrawLine(_yAxisPen, axisCenter.ToPoint(), yAxisEndPoint);
+            context.DrawLine(_zAxisPen, axisCenter.ToPoint(), zAxisEndPoint);
 
             sw.Stop();
             var elapsed = sw.ElapsedMilliseconds;
@@ -154,35 +188,63 @@ namespace IxMilia.ModelExplorer.Views
             _viewModel?.Zoom(scaleAdjustment);
         }
 
+        private CancellationTokenSource _source = new CancellationTokenSource();
+        private object _gate = new object();
+
+        private CancellationToken GetNewToken()
+        {
+            //lock(_gate)
+            //{
+            //    _source.Cancel();
+            //    _source.Dispose();
+            //    _source = new CancellationTokenSource();
+            //    return _source.Token;
+            //}
+
+            return CancellationToken.None;
+        }
+
         protected override void OnPointerMoved(PointerEventArgs e)
         {
             base.OnPointerMoved(e);
             var point = e.GetCurrentPoint(this);
-            var delta = point.Position - _lastCursorPosition;
-            _lastCursorPosition = point.Position;
 
-            if (_isPanning)
+            var token = GetNewToken();
+            Task.Factory.StartNew(() =>
             {
-                _viewModel?.Pan(delta.X, delta.Y);
-            }
+                try
+                {
+                    var delta = point.Position - _lastCursorPosition;
+                    _lastCursorPosition = point.Position;
 
-            if (_isRotating)
-            {
-                _viewModel?.Rotate(-delta.X, delta.Y);
-            }
+                    if (_isPanning)
+                    {
+                        Dispatcher.UIThread.Post(() => _viewModel?.Pan(delta.X, delta.Y));
+                    }
 
-            var closest = GetClosestVertexInRange(point.Position);
-            if (closest.HasValue)
-            {
-                var (closestVertex, _closestPoint, _distance) = closest.GetValueOrDefault();
-                _highlightVertex = closestVertex;
-            }
-            else
-            {
-                _highlightVertex = null;
-            }
+                    if (_isRotating)
+                    {
+                        Dispatcher.UIThread.Post(() => _viewModel?.Rotate(-delta.X, delta.Y));
+                    }
 
-            InvalidateVisual();
+                    var closest = GetClosestVertexInRange(point.Position, token);
+                    if (closest.HasValue)
+                    {
+                        var (closestVertex, _closestPoint, _distance) = closest.GetValueOrDefault();
+                        _highlightVertex = closestVertex;
+                    }
+                    else
+                    {
+                        _highlightVertex = null;
+                    }
+
+                    Dispatcher.UIThread.Post(() => InvalidateVisual());
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
+            });
         }
 
         protected override void OnPointerPressed(PointerPressedEventArgs e)
@@ -204,7 +266,7 @@ namespace IxMilia.ModelExplorer.Views
             if (point.Properties.IsLeftButtonPressed)
             {
                 var cursorLocation = point.Position;
-                var closest = GetClosestVertexInRange(cursorLocation);
+                var closest = GetClosestVertexInRange(cursorLocation, CancellationToken.None);
                 if (closest.HasValue)
                 {
                     var (closestVertex, _closestPoint, _distanceSquared) = closest.GetValueOrDefault();
@@ -249,20 +311,24 @@ namespace IxMilia.ModelExplorer.Views
                 return;
             }
 
+            var token = GetNewToken();
             var transform = GetCorrectedTransform();
             var swapTransformedModel = new Model((Vector3[])model.Vertices.Clone(), model.Triangles);
-            for (int i = 0; i < swapTransformedModel.Vertices.Length; i++)
+            Parallel.ForEach(Enumerable.Range(0, swapTransformedModel.Vertices.Length), new ParallelOptions() { CancellationToken = token }, i =>
             {
                 var v = swapTransformedModel.Vertices[i];
                 var vTransformed = Vector3.Transform(v, transform);
                 swapTransformedModel.Vertices[i] = vTransformed;
-            }
+            });
 
             // do the swap
-            _transformedModel = swapTransformedModel;
+            if (!token.IsCancellationRequested)
+            {
+                _transformedModel = swapTransformedModel;
+            }
         }
 
-        private (Vector3, Point, double)? GetClosestVertexInRange(Point cursorLocation)
+        private (Vector3, Point, double)? GetClosestVertexInRange(Point cursorLocation, CancellationToken cancellationToken)
         {
             if (_viewModel?.Model is null)
             {
@@ -277,23 +343,17 @@ namespace IxMilia.ModelExplorer.Views
                 return null;
             }
 
+            var minimumDistance = 10.0;
             var closestVertexIndex = 0;
             var closestDistance = double.MaxValue;
-            for (int i = 0; i < transformedModel.Vertices.Length; i++)
-            {
-                var candidateVertex = transformedModel.Vertices[i].ToPoint();
-                var candidateDistance = DistanceSquared(cursorLocation, candidateVertex);
-                if (candidateDistance < closestDistance)
-                {
-                    closestDistance = candidateDistance;
-                    closestVertexIndex = i;
-                }
-            }
 
-            var minimumDistance = 5.0;
-            if (closestDistance < minimumDistance * minimumDistance)
+            var (closestIndex, closestDistanceSquared) = transformedModel.Vertices.AsParallel()
+                .WithCancellation(cancellationToken)
+                .Select((v, i) => (i, DistanceSquared(cursorLocation, v.ToPoint())))
+                .MinBy(p => p.Item2);
+            if (closestDistanceSquared < minimumDistance * minimumDistance)
             {
-                return (model.Vertices[closestVertexIndex], transformedModel.Vertices[closestVertexIndex].ToPoint(), closestDistance);
+                return (model.Vertices[closestIndex], transformedModel.Vertices[closestIndex].ToPoint(), closestDistanceSquared);
             }
 
             return null;
